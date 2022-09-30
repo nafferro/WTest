@@ -7,13 +7,12 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct IntroView: View {    
+    @ObservedObject private var viewModel = IntroViewModel()
+
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            viewModel.processingDataState ? ProgressView("A processar dados…") : ProgressView("A carregar ficheiro...")
         }
         .padding()
     }
@@ -21,6 +20,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        IntroView()
     }
 }
