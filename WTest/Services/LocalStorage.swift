@@ -14,7 +14,6 @@ class LocalStorage {
     let realm = try! Realm()
     
     func saveZipCodeData(zipcodeModel: ZipcodeModel) {
-        print("Realm is located at:", realm.configuration.fileURL!)
         try! realm.write {
             realm.add(zipcodeModel)
         }
