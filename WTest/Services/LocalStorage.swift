@@ -20,26 +20,10 @@ class LocalStorage {
         }
     }
     
-    func getZipCodesTotal() -> Int {
-        let zipcodes = realm.objects(ZipcodeModel.self)
-        return zipcodes.count
-    }
-    
     func deleteData() {
         let data = realm.objects(ZipcodeModel.self)
         try! realm.write {
             realm.delete(data)
         }
-    }
-    
-    func changeFilter(_ word: String) -> Results<ZipcodeModel> {
-        DispatchQueue.global(qos: .background).sync {
-            var result: Results<ZipcodeModel>? = nil
-            let realm = try! Realm()
-            if word.count > 3 {
-                 result = realm.objects(ZipcodeModel.self).filter(NSPredicate(format: "city CONTAINS[cd] %@ OR zipcode CONTAINS %@", word, word))
-             }
-            return result ?? realm.objects(ZipcodeModel.self).filter(NSPredicate(format: "city == %@", ""))
-         }
     }
 }

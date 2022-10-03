@@ -27,8 +27,6 @@ class IntroViewModel: ObservableObject {
         
     }
     func loadData() {
-      //  DispatchQueue.main.async {
-            self.dataService.setup()
-       // }
+        self.dataService.setup()
     }
 }
