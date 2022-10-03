@@ -7,14 +7,23 @@
 
 import SwiftUI
 
-struct IntroView: View {    
+struct IntroView: View {
+    @Environment(\.presentationMode) var presentationMode
     @ObservedObject private var viewModel = IntroViewModel()
 
     var body: some View {
         VStack {
-            viewModel.processingDataState ? ProgressView("A processar dados…") : ProgressView("A carregar ficheiro...")
+            ProgressView("A processar dados…")
         }
         .padding()
+        .onAppear {
+            viewModel.loadData()
+        }
+        .alert(isPresented:$viewModel.readyToDismiss) {
+            Alert(title: Text("Dados Carregados"), message: Text("Dados Carregados com sucesso"), dismissButton: .default(Text("OK"), action: {
+                self.presentationMode.wrappedValue.dismiss()
+            }))
+        }
     }
 }
 

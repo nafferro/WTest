@@ -8,8 +8,7 @@
 import Foundation
 import RealmSwift
 
-class ZipcodeModel: Object {
+class ZipcodeModel: Object, ObjectKeyIdentifiable {
     @objc dynamic var zipcode = "N/A"
-    @objc dynamic var zipcodeExtension = "N/A"
     @objc dynamic var city = "N/A"
 }

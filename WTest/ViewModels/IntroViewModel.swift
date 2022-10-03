@@ -7,26 +7,28 @@
 
 import Foundation
 import Combine
-
 class IntroViewModel: ObservableObject {
-    
+   
+    @Published var readyToDismiss: Bool = false
+
     var dataService = DataService()
     private lazy var cancellables: Set<AnyCancellable> = []
-    
-    @Published var processingDataState: Bool = false
-    @Published var setupCompleted: Bool = false
     
     init() {
         dataService.processingDataState
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [self] result in
-                self.setupCompleted = true
+                UserDefaults.standard.set(true, forKey: "databaseLoaded")
                 print("processsed")
-            }, receiveValue: { value in
-                self.processingDataState = value
+                readyToDismiss = true
+            }, receiveValue: { _ in
             })
             .store(in: &cancellables)
         
-        dataService.setup()
+    }
+    func loadData() {
+      //  DispatchQueue.main.async {
+            self.dataService.setup()
+       // }
     }
 }

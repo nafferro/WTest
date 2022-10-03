@@ -12,24 +12,18 @@ import CSV
 let ZIPCODES_ADDRESS = "https://raw.githubusercontent.com/centraldedados/codigos_postais/master/data/codigos_postais.csv"
 
 struct DataService {
-    
     let processingDataState = PassthroughSubject<Bool,Never>()
-    
     let filename = "zipcodes.csv"
-    
     func setup() {
-        
-        if LocalStorage().loadSettings().fileLoaded == false {
+        if !UserDefaults.standard.bool(forKey: "fileLoaded") {
             downloadZipCodes()
         }
-        
-        else if LocalStorage().loadSettings().databaseLoaded == false {
+        else if !UserDefaults.standard.bool(forKey: "databaseLoaded") {
             processData()
         }
     }
     
     private func downloadZipCodes () {
-        processingDataState.send(false)
         let urlString = ZIPCODES_ADDRESS
         if let zipCodesUrl = URL(string: urlString) {
             URLSession.shared.downloadTask(with: zipCodesUrl) { (tempFileUrl, response, error) in
@@ -37,12 +31,11 @@ struct DataService {
                     do {
                         let savedURL = getDocumentsDirectory().appendingPathComponent(filename)
                         try FileManager.default.moveItem(at: csvTempFileUrl, to: savedURL)
-                        let tempSettings = SettingsModel()
-                        tempSettings.fileLoaded = true
-                        LocalStorage().saveSettings(settingsModel: tempSettings)
-                        processData()
-                    } catch {
-                        print("Error: ", error)
+                        UserDefaults.standard.set(true, forKey: "fileLoaded")
+                        processData() 
+                    }
+                    catch let error {
+                        print(error.localizedDescription)
                     }
                 }
             }.resume()
@@ -55,7 +48,6 @@ struct DataService {
     }
     
     private func processData() {
-        processingDataState.send(true)
         LocalStorage().deleteData()
         let savedURL = getDocumentsDirectory().appendingPathComponent(filename)
         let stream = InputStream(fileAtPath: savedURL.path)!
@@ -63,18 +55,12 @@ struct DataService {
         var processed = 0
         while let row = csv.next() {
             let tempZip = ZipcodeModel()
-            tempZip.zipcode = row[14]
-            tempZip.zipcodeExtension = row[15]
+            tempZip.zipcode = "\(row[14])-\(row[15])"
             tempZip.city = row[3]
             processed = processed + 1
             LocalStorage().saveZipCodeData(zipcodeModel: tempZip)
-            print(processed)
+            print("processed: ", processed)
         }
-        
-        let tempSettings = SettingsModel()
-        tempSettings.databaseLoaded = true
-        LocalStorage().saveSettings(settingsModel: tempSettings)
         processingDataState.send(completion: .finished)
-        
     }
 }

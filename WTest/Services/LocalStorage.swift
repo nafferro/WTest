@@ -7,54 +7,17 @@
 
 import Foundation
 import RealmSwift
+import Combine
 
 class LocalStorage {
     static var shared = LocalStorage.init()
     let realm = try! Realm()
     
-    // SETTINGS
-
-    
-    func saveSettings(settingsModel: SettingsModel) {
-        let realmObj = realm.objects(SettingsModel.self)
-
-        if realmObj.first != nil {
-            self.updateSettings(fileLoaded: settingsModel.fileLoaded, databaseLoaded: settingsModel.databaseLoaded)
-        }
-        else {
-            try! realm.write {
-                realm.add(settingsModel)
-            }
-        }
-    }
-    
-    func updateSettings(fileLoaded: Bool? = nil, databaseLoaded: Bool? = nil) {
-        let settings = realm.objects(SettingsModel.self)
-        if let tempSettings = settings.first {
-            try! realm.write {
-                if let fileLoaded = fileLoaded { tempSettings.fileLoaded = fileLoaded }
-                if let databaseLoaded = databaseLoaded { tempSettings.databaseLoaded = databaseLoaded }
-            }
-        }
-    }
-    
-    func loadSettings() -> SettingsModel {
-        print("Realm is located at:", realm.configuration.fileURL!)
-        let settings = realm.objects(SettingsModel.self)
-        if let tempSettings = settings.first {
-            return tempSettings
-        }
-        return SettingsModel()
-    }
-    
-    
-    // ZIP CODES
-    
     func saveZipCodeData(zipcodeModel: ZipcodeModel) {
+        print("Realm is located at:", realm.configuration.fileURL!)
         try! realm.write {
             realm.add(zipcodeModel)
         }
-
     }
     
     func getZipCodesTotal() -> Int {
@@ -67,5 +30,16 @@ class LocalStorage {
         try! realm.write {
             realm.delete(data)
         }
+    }
+    
+    func changeFilter(_ word: String) -> Results<ZipcodeModel> {
+        DispatchQueue.global(qos: .background).sync {
+            var result: Results<ZipcodeModel>? = nil
+            let realm = try! Realm()
+            if word.count > 3 {
+                 result = realm.objects(ZipcodeModel.self).filter(NSPredicate(format: "city CONTAINS[cd] %@ OR zipcode CONTAINS %@", word, word))
+             }
+            return result ?? realm.objects(ZipcodeModel.self).filter(NSPredicate(format: "city == %@", ""))
+         }
     }
 }
